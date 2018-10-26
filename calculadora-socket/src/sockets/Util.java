@@ -20,7 +20,7 @@ public class Util {
 	}
 	
 	public static boolean ehExpresao(String s){
-		return s.matches("(\\d+([.]\\d+)?\\s{1}[+*/-\\^%]\\s{1}\\d+([.]\\d+)?)");
+		return s.matches("(\\d+([.]\\d+)?\\s{1}[\\+*/\\-\\^%]\\s{1}\\d+([.]\\d+)?)");
 	}
 	
 	public static boolean ehExpresao2(String s) {
