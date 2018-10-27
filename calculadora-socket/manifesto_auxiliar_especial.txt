@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Class-Path: commons-collections4-4.0.jar
+Main-Class: sockets.AuxiliarEspecial

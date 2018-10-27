@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -16,7 +17,24 @@ public class AuxiliarEspecial {
 	private int port;
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
-		new AuxiliarEspecial("127.0.0.1", 12345).run();
+		
+Scanner sc = new Scanner(System.in);
+		
+		System.out.println("Digite o ip:");
+		String ip = sc.nextLine();
+		
+		System.out.println("Digite a porta:");	
+		Integer por = sc.nextInt();
+		
+		AuxiliarEspecial auxiliarEspecial = new AuxiliarEspecial(ip, por);
+		
+		try {
+			auxiliarEspecial.run();
+		} catch (ConnectException e) {
+			System.err.println("@ Servidor principal nao encontrado!");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public AuxiliarEspecial(String host, int port) {
@@ -27,13 +45,13 @@ public class AuxiliarEspecial {
 	public void run() throws UnknownHostException, IOException {
 
 		String id = UUID.randomUUID().toString();
-		System.out.println("id: " + id);
+		System.out.println("# Meu ID: " + id);
 
 		// conecta ao servidor
 		@SuppressWarnings("resource")
 		Socket client = new Socket(host, port);
 
-		System.out.println("# Auxiliar Especial conectado ao servidor!");
+		System.out.println("# Auxiliar Especial conectado ao servidor principal.");
 
 		new Thread(new AuxiliarEspecialHandler(id, client.getInputStream(), client.getOutputStream())).start();
 		PrintStream output = new PrintStream(client.getOutputStream());
@@ -79,7 +97,7 @@ class AuxiliarEspecialHandler implements Runnable {
 				printStream.println("456:" + id + ":" + parametros[0] + ":" + calcular(parametros));
 				printStream.flush();
 				
-				System.out.println("Resposta envianda.");
+				System.out.println("# Resposta envianda.");
 			}
 		}
 
@@ -95,15 +113,18 @@ class AuxiliarEspecialHandler implements Runnable {
 
 		StringTokenizer stringTokenizer = new StringTokenizer(parametros[1]);
 		String s = stringTokenizer.nextToken();
-		if (s.equals("sqrt")) {
-			System.out.println("# Enviando resposta.");
+		
+		// especifico para raiz
+		if (s.toLowerCase().equals("sqrt")) {
+			System.out.println("-> Enviando resposta...");
 			return String.valueOf(Math.sqrt(Double.valueOf(stringTokenizer.nextToken())));
 		}
 
 		Double opr1 = Double.valueOf(s);
 		String operacao = stringTokenizer.nextToken();
 		Double opr2 = Double.valueOf(stringTokenizer.nextToken());
-
+		
+		// demais operacoes
 		switch (operacao) {
 		case "^":
 			resultado = String.valueOf(Math.pow(opr1, opr2));
@@ -116,7 +137,7 @@ class AuxiliarEspecialHandler implements Runnable {
 			break;
 		}
 
-		System.out.println("# Enviando resposta.");
+		System.out.println("-> Enviando resposta...");
 
 		return resultado;
 	}

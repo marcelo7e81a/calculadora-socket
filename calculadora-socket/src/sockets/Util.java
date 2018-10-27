@@ -4,7 +4,7 @@ import java.util.StringTokenizer;
 
 public class Util {
 	
-	public static boolean entradaValida(String entrada) {
+	public static boolean validarEntrada(String entrada) {
 		
 		StringTokenizer token = new StringTokenizer(entrada);
 		String operador = token.nextToken();
@@ -29,5 +29,14 @@ public class Util {
 	
 	public static boolean ehNumero(String s) {
 		return s.matches("\\d");
+	}
+	
+	public static String dividir(Double opr1, Double opr2) {
+		
+		if (opr2 == 0.0f || opr2 == 0f) {
+			return "@ Impossivel dividir por ZERO!";
+		}
+		
+		return String.valueOf(opr1 / opr2);
 	}
 }

@@ -22,7 +22,7 @@ import model.Cliente;
 
 public class Servidor {
 
-	private int port;
+	private int porta;
 	private ServerSocket server;
 
 	private Map<String, Auxiliar> auxiliaresMap;
@@ -34,11 +34,17 @@ public class Servidor {
 	private CircularFifoQueue<Auxiliar> auxiliaresEspeciaisFila;
 
 	public static void main(String[] args) throws IOException {
-		new Servidor(12345).run();
+		
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Digite a porta:");
+		
+		Integer i = sc.nextInt();
+		
+		new Servidor(i).run();
 	}
 
 	public Servidor(int port) {
-		this.port = port;
+		this.porta = port;
 		this.usuarios = new ArrayList<>();
 		this.usuariosMap = new HashMap<>();
 		this.auxiliaresMap = new HashMap<>();
@@ -46,33 +52,34 @@ public class Servidor {
 		this.auxiliaresEspeciaisFila = new CircularFifoQueue<>();
 	}
 
+	@SuppressWarnings("static-access")
 	public void run() throws IOException {
 
-		server = new ServerSocket(port) {
+		server = new ServerSocket(porta) {
 			protected void finalize() throws IOException {
 				this.close();
 			}
 		};
 
-		System.out.println("# Servidor rodando IP " + InetAddress.getLocalHost().getHostAddress() + " Porta 12345.");
+		System.out.println("# Servidor rodando IP " + InetAddress.getLocalHost().getHostAddress() + " Porta " + this.porta);
 		System.out.println("# Aguardando conexoes.");
 
 		while (true) {
 
 			Socket client = server.accept();
-			System.out.print("# Novo cliente conectado: " + client.getInetAddress().getHostAddress());
+			System.err.print("# Novo cliente conectado: " + client.getInetAddress().getLocalHost().getHostAddress());
 
 			String tipo = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
 			String[] s = tipo.split(":");
 			switch (s[0]) {
 			case "USUARIO":
-				System.out.print(" tipo: USUARIO");
+				System.err.print(", tipo: USUARIO");
 				Cliente cliente = new Cliente(s[1], new PrintStream(client.getOutputStream()), Tipo.USUARIO);
 				this.usuarios.add(cliente);
 				this.usuariosMap.put(cliente.getId(), cliente);
 				break;
 			case "AUXILIAR":
-				System.out.print(" tipo: AUXILIAR");
+				System.err.print(", tipo: AUXILIAR");
 				Auxiliar auxiliar = new Auxiliar(s[1], new PrintStream(client.getOutputStream()), Tipo.AUXILIAR);
 				// add na fila
 				this.auxiliaresFila.add(auxiliar);
@@ -80,9 +87,8 @@ public class Servidor {
 				this.auxiliaresMap.put(auxiliar.getId(), auxiliar);
 				break;
 			case "AUXILIAR_ESPECIAL":
-				System.out.print(" tipo: AUXILIAR_ESPECIAL");
-				Auxiliar auxiliarEsp = new Auxiliar(s[1], new PrintStream(client.getOutputStream()),
-						Tipo.AUXILIAR_ESPECIAL);
+				System.err.print(", tipo: AUXILIAR_ESPECIAL");
+				Auxiliar auxiliarEsp = new Auxiliar(s[1], new PrintStream(client.getOutputStream()), Tipo.AUXILIAR_ESPECIAL);
 				// add na fila
 				this.auxiliaresEspeciaisFila.add(auxiliarEsp);
 				// add referencia
@@ -125,19 +131,18 @@ public class Servidor {
 			System.out.println("# Parametros de retorno recebidos.");
 			Auxiliar aux = auxiliaresMap.get(parametros[1]);
 
-			if (aux.getTipo() == Tipo.AUXILIAR) {
-				auxiliaresFila.add(aux);
-			} else {
-				auxiliaresEspeciaisFila.add(aux);
-			}
+			// adiciona servidor no final da fila
+			// para uma nova requisicao
+			addServidorNaFila(aux);
 
+			// devolve os dados para o usuario
 			System.out.println("# Enviando parametros de retorno para o cliente.");
 			Cliente cliente = usuariosMap.get(parametros[2]);
 			cliente.getPrintStream().println(parametros[3]);
 
 			break;
 		default:
-			System.out.println("@ Erro!");
+			System.err.println("@ Erro!");
 			break;
 		}
 	}
@@ -170,6 +175,16 @@ public class Servidor {
 		}
 
 		return auxiliar;
+	}
+	
+	private void addServidorNaFila(Auxiliar aux) {
+		
+		if (aux.getTipo() == Tipo.AUXILIAR) {
+			auxiliaresFila.add(aux);
+		} else {
+			auxiliaresEspeciaisFila.add(aux);
+		}
+		
 	}
 }
 

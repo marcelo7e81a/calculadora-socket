@@ -17,13 +17,21 @@ public class Auxiliar {
 	private int port;
 
 	public static void main(String[] args) {
+		
+		Scanner sc = new Scanner(System.in);
+		
+		System.out.println("Digite o ip:");
+		String ip = sc.nextLine();
+		
+		System.out.println("Digite a porta:");	
+		Integer por = sc.nextInt();
 
-		Auxiliar auxiliar = new Auxiliar("127.0.0.1", 12345);
+		Auxiliar auxiliar = new Auxiliar(ip, por);
 
 		try {
 			auxiliar.run();
 		} catch (ConnectException e) {
-			System.err.println("Servidor principal nao encontrado!");
+			System.err.println("@ Servidor principal nao encontrado!");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -41,9 +49,9 @@ public class Auxiliar {
 		Socket client = new Socket(host, port);
 
 		String id = UUID.randomUUID().toString();
-		System.out.println("id: " + id);
+		System.out.println("# Meu ID: " + id);
 
-		System.out.println("Auxiliar conectado ao servidor!");
+		System.out.println("# Auxiliar conectado ao servidor principal.");
 
 		new Thread(new AuxiliarHandler(id, client.getInputStream(), client.getOutputStream())).start();
 		PrintStream output = new PrintStream(client.getOutputStream());
@@ -72,24 +80,24 @@ class AuxiliarHandler implements Runnable {
 
 		while (s.hasNextLine()) {
 
-			System.out.println("Recebendo dados...");
+			System.out.println("-> Recebendo dados...");
 			String msg = s.nextLine();
 
 			if (!msg.isEmpty()) {
 
 				String[] parametros = msg.split(":");
-				System.out.println("Dados recebidos.");
+				System.out.println("# Dados recebidos.");
 
 				/*
-				 * primeiro parametro e o tipo de operacao (calculo = 123 |
-				 * resposta = 456) segundo parametro e o ID do servidor auxiliar
-				 * terceiro parametro ID do cliente que fez a requisicao quarto
-				 * parametro e a resposta
+				 * primeiro parametro -> tipo de operacao (calculo = 123 | resposta = 456) 
+				 * segundo parametro -> ID do servidor auxiliar
+				 * terceiro parametro -> ID do cliente que fez a requisicao 
+				 * quarto parametro -> resposta
 				 */
 				printStream.println("456:" + id + ":" + parametros[0] + ":" + calcular(parametros));
 				printStream.flush();
 				
-				System.out.println("Resposta envianda.");
+				System.out.println("# Resposta envianda.");
 			}
 		}
 
@@ -99,7 +107,7 @@ class AuxiliarHandler implements Runnable {
 
 	private String calcular(String[] parametros) {
 
-		System.out.println("Calculando...");
+		System.out.println("-> Calculando...");
 
 		String resultado = "";
 
@@ -119,20 +127,14 @@ class AuxiliarHandler implements Runnable {
 			resultado = String.valueOf(opr1 * opr2);
 			break;
 		case "/":
-			
-			if (opr2 == 0.0f) {
-				resultado = "Impossivel dividir por ZERO!";
-				break;
-			}
-			
-			resultado = String.valueOf(opr1 / opr2);
+			resultado = Util.dividir(opr1, opr2);
 			break;
 		default:
 			System.out.println("@ Erro!");
 			break;
 		}
 
-		System.out.println("Enviando resposta.");
+		System.out.println("-> Enviando resposta...");
 
 		return resultado;
 	}
